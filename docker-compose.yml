@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+
+  meson:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/opt/app/
+      - ./example/:/root/.config/tio/config/
+    ulimits:
+      nofile:
+        soft: 500
+        hard: 1000
+    tty: true
+    working_dir: /opt/app/
+    environment:
+      - TZ=America/Los_Angeles

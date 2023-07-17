@@ -1,0 +1,120 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Setup Container",
+            "type": "shell",
+            "command": "docker compose build",
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Setup Meson",
+            "type": "shell",
+            "command": "docker compose run --rm meson sh -c \"meson setup build --buildtype debugoptimized\"",
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Setup",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Setup Container",
+                "Setup Meson",
+            ],
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "docker compose run --rm meson sh -c \"cd /opt/app/build/ && /usr/bin/ninja clean\"",
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "docker compose run --rm meson sh -c \"meson compile -C build\"",
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "autoDetect",
+                    "${workspaceFolder}/"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                },
+            },
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Run",
+            "type": "shell",
+            "command": "docker compose run --rm meson sh -c \"/opt/app/build/src/tio\"",
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Callgrind",
+            "type": "shell",
+            "command": "docker compose run --rm meson sh -c \"cd /opt/app/build/ && valgrind --tool=callgrind --dump-instr=yes /opt/app/build/src/tio\"",
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Leak test",
+            "type": "shell",
+            "command": "docker compose run --rm meson sh -c \"cd /opt/app/build/ && valgrind -s --leak-check=full --show-leak-kinds=all /opt/app/build/src/tio\"",
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Leak test (debug)",
+            "type": "shell",
+            "command": "docker compose run --rm meson sh -c \"cd /opt/app/build/ && valgrind -v -d -s --leak-check=full --show-leak-kinds=all /opt/app/build/src/tio\"",
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Build and run",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build",
+                "Run"
+            ],
+            "group": {
+                "kind": "build",
+            }
+        },
+        {
+            "label": "Clean, build, and run",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Clean",
+                "Build",
+                "Run"
+            ],
+            "group": {
+                "kind": "build",
+            }
+        },
+    ],
+}
